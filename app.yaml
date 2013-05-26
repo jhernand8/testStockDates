@@ -1,0 +1,17 @@
+application: investmentdates
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /index\.html
+  static_files: static/html/index.html
+  upload: local/static/html/index.html
+- url: /input
+  script: investdates.application
+libraries:
+- name: webapp2
+  version: latest
+- name: jinja2
+  version: latest

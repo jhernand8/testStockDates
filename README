@@ -1,0 +1,10 @@
+App that runs in Google App Engine. Test app as I'm learning python. (Java developer)
+
+I was interested to see if choosing different dates for when to invest
+makes much of a difference. This is for info only, and like they say, past
+does not gaurantee will continue that way. Pretty basic right now,
+can view data starting at a certain month for one or more stocks/mutual funds/etc.
+If look at different windows, which days seem better is different.
+
+The helper class could be used as a start for other apps needing historical 
+ticker price data.

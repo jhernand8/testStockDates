@@ -1,0 +1,94 @@
+<html>
+<head>
+	<script src="http://yui.yahooapis.com/3.10.1/build/yui/yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+	Start month: {{ month }}
+	<br/>
+	start year: {{ year }}
+	<br/>
+	<br/>
+<h3>Data</h3>
+<div id="tickerDataDiv"</div>
+</body>
+<script type="text/javascript">
+	YUI().use('datatable','datatype-number', function(Y) {
+  function shouldFormatAsShares(o) {
+      var floatval = parseFloat(o.value);
+      var intval = Math.round(floatval);
+      var diff = Math.abs(floatval - intval);
+      if (diff < 0.0001) {
+        return false;
+      }
+      return true;
+      }      
+  function sharesFormatter(o) {
+    if (shouldFormatAsShares(o)) {
+      return Y.Number.format(parseFloat(o.value), {decimalPlaces: 3});
+    }
+    return o.value;
+  }
+
+  {% for ticker in tickerToDayPrice %}
+  function format{{ticker}}Shares(o) {
+    if (shouldFormatAsShares(o)) {
+      var floatVal = parseFloat(o.value);
+      var formattedVal = Y.Number.format(floatVal, {decimalPlaces: 3});
+      var worstVal = {{tickerToDayPrice[ticker][tickerToMinDay[ticker]]}};
+      var bestVal = {{ tickerToDayPrice[ticker][tickerToMaxDay[ticker]]}};
+      if (Math.abs(worstVal - floatVal) < 0.000000001) {
+        return "<i><font style=\"color: #FF0000;\">" + formattedVal + "</font></i>";
+      }
+      if (Math.abs(bestVal - floatVal) < 0.000000001) {
+        return "<b><font style=\"color: #0000FF;\">" + formattedVal + "</font></b>";
+      }
+      if (floatVal < {{ tickerToAvg[ticker]}}) {
+        return "<i>" + formattedVal + "</i>"
+      }
+      return "<b>" + formattedVal + "</b>";
+    }
+    return o.value;
+  }
+  {% endfor %}
+  var tickerColumns = [
+    { key: "day", label: "Day of Month"},
+    {% for ticker in tickerToDayPrice %}
+      { key: "{{ticker}}", label: "{{ticker}}", formatter: format{{ticker}}Shares, allowHTML: true },
+    {% endfor %}
+    ];
+  var dataByDay = [
+    {% for day in range(1,32) %}
+      { day: "{{day}}", {% for ticker in tickerToDayPrice %} {{ ticker }} : "{{tickerToDayPrice[ticker][day]}}", {% endfor %} },
+    {% endfor %}
+
+    { day: "Avg", {% for ticker in tickerToAvg %} {{ ticker }}: "{{tickerToAvg[ticker]}}", {% endfor %} },
+
+    { day: "Worst Day", {% for ticker in tickerToMinDay %} {{ticker}}: "{{tickerToMinDay[ticker]}}", {% endfor %} },
+
+    { day: "Best Day", {% for ticker in tickerToMaxDay %} {{ticker}}: "{{tickerToMaxDay[ticker]}}", {% endfor %} }
+  ];
+  var columns = [
+    { key: "ticker", label: "Ticker", allowHTML: true},
+    {% for day in range(1, 32) %}
+      { key: "day{{day}}", label: "{{day}}", allowHTML: true, formatter: sharesFormatter},
+    {% endfor %}
+    { key: "day1", label: "1", allowHTML: true},
+    { key: "avg", label: "Avg", allowHTML: true},
+    { key: "maxDay", label: "Best Day", allowHTML: true},
+    { key: "minDay", label: "Worst Day", allowHTML: true}
+  ];
+  var data = [
+    {% for ticker in tickerToMinDay %}
+      { ticker: "{{ticker}}", avg: "{{tickerToAvg[ticker]}}", 
+        maxDay: "{{tickerToMaxDay[ticker]}}", minDay: "{{tickerToMinDay[ticker]}}",
+	{% for day in range(1, 32) %}
+	  day{{day}}: "{{tickerToDayPrice[ticker][day]}}" {% if day < 31 %} , {% endif %}
+	{% endfor %}
+      },
+    {% endfor %}
+  ];
+  var dTable = new Y.DataTable({columns: tickerColumns, data: dataByDay});
+  dTable.render("#tickerDataDiv");
+});
+</script>
+</html>
